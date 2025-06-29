@@ -307,8 +307,8 @@ async fn network_task(
 ) -> Result<()> {
     let sock = Arc::new(UdpSocket::bind(local_addr).await?);
 
-    let public_addr = discover_public(&sock).await?;
-    info!("Reflexive addr {}", public_addr);
+    let public_address = get_public_address(&sock).await?;
+    info!("Reflexive addr {}", public_address);
 
     if let Some(peer) = &remote_addr {
         sock.connect(peer).await?;
@@ -412,11 +412,11 @@ where
     Ok(())
 }
 
-async fn discover_public(sock: &UdpSocket) -> Result<SocketAddr> {
+async fn get_public_address(sock: &UdpSocket) -> Result<SocketAddr> {
     // Google’s anycast STUN
-    let srv: SocketAddr = "74.125.194.127:19302".parse()?;
-    let cli = StunClient::new(srv);
-    let public = cli
+    let address: SocketAddr = "74.125.194.127:19302".parse()?;
+    let client = StunClient::new(address);
+    let public = client
         .query_external_address_async(sock)
         .await
         .context("STUN failed")?;
